@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CloudIDS live threat monitoring and model analytics dashboard">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>CloudIDS — Security Intelligence</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <section id="connect-screen" class="connect-screen" aria-labelledby="connect-title">
+    <div class="connect-card">
+      <div class="brand brand-large"><span class="brand-mark" aria-hidden="true">C</span><span>cloud<span class="brand-strong">ids</span></span></div>
+      <p class="eyebrow">SECURITY INTELLIGENCE PLATFORM</p>
+      <h1 id="connect-title">A clearer view of your signals.</h1>
+      <p class="muted">Connect this dashboard to your local CloudIDS scoring service. Your token stays in this browser session only.</p>
+      <form id="connect-form">
+        <label for="api-token">Local API bearer token</label>
+        <input id="api-token" name="token" type="password" autocomplete="off" required minlength="32" placeholder="Paste the token from your terminal">
+        <button class="button button-primary button-wide" type="submit">Connect to CloudIDS <span aria-hidden="true">→</span></button>
+      </form>
+      <p id="connect-error" class="form-error" role="alert"></p>
+      <p class="microcopy"><span class="lock-icon" aria-hidden="true">◆</span> Token is kept in memory and cleared when you disconnect or refresh.</p>
+    </div>
+    <div class="connect-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><div class="art-core"><span></span><span></span><span></span></div><div class="art-label art-label-top">LIVE SCORING</div><div class="art-label art-label-bottom">ANOMALY SIGNALS · ML INSIGHTS</div></div>
+  </section>
+
+  <div id="app-shell" class="app-shell" hidden>
+    <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="CloudIDS home"><span class="brand-mark" aria-hidden="true">C</span><span>cloud<span class="brand-strong">ids</span></span></a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="nav-list">
+        <a class="nav-link active" href="#overview" data-page="overview"><span class="nav-icon">⌂</span>Overview</a>
+        <a class="nav-link" href="#events" data-page="events"><span class="nav-icon">◷</span>Flow events <span id="nav-alert-count" class="nav-count">0</span></a>
+        <a class="nav-link" href="#findings" data-page="findings"><span class="nav-icon">◇</span>Cloud findings</a>
+        <a class="nav-link" href="#models" data-page="models"><span class="nav-icon">◎</span>Models & analysis</a>
+        <a class="nav-link" href="#integrations" data-page="integrations"><span class="nav-icon">⌘</span>Integrations</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="sidebar-health"><span id="sidebar-dot" class="status-dot"></span><span><strong id="sidebar-status">Connecting</strong><small>Scoring service</small></span></div>
+      <nav class="nav-list nav-footer"><a class="nav-link" href="#settings" data-page="settings"><span class="nav-icon">⚙</span>Settings</a><a class="nav-link" href="#about" data-page="about"><span class="nav-icon">ⓘ</span>About CloudIDS</a></nav>
+      <div class="sidebar-user"><span class="avatar">S</span><span><strong>Security workspace</strong><small>Local instance</small></span><button id="disconnect-button" class="icon-button" aria-label="Disconnect and clear token" title="Disconnect">↪</button></div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <button id="menu-button" class="icon-button mobile-menu" aria-label="Open navigation">☰</button>
+        <div class="breadcrumbs"><span>Workspace</span><span aria-hidden="true">/</span><strong id="breadcrumb-page">Overview</strong></div>
+        <div class="topbar-actions"><span class="live-pill"><span id="top-status-dot" class="status-dot"></span><span id="top-status">Connecting</span></span><button id="theme-button" class="icon-button" aria-label="Toggle color theme" title="Toggle theme">◐</button><button id="refresh-button" class="button button-small">↻ <span>Refresh</span></button></div>
+      </header>
+
+      <main id="main" class="page-content">
+        <section class="page-view active" data-view="overview">
+          <div class="page-heading"><div><p class="eyebrow">SECURITY OVERVIEW <span id="model-version" class="model-tag">MODEL —</span></p><h1>Good security starts with context.</h1><p class="muted">A live view of scored network flows and connected cloud findings.</p></div><div class="heading-right"><label class="select-label" for="range-select">TIME RANGE</label><select id="range-select"><option value="24">Last 24 hours</option><option value="6">Last 6 hours</option><option value="72">Last 3 days</option><option value="168">Last 7 days</option></select></div></div>
+          <div class="stat-grid">
+            <article class="stat-card"><div class="stat-top"><span>Scored flows</span><span class="stat-icon icon-blue">↗</span></div><strong id="stat-events">—</strong><small>in selected period</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Flow alerts</span><span class="stat-icon icon-rose">!</span></div><strong id="stat-alerts">—</strong><small>model flagged for review</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Cloud findings</span><span class="stat-icon icon-violet">◇</span></div><strong id="stat-findings">—</strong><small>provider signals received</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Mean model score</span><span class="stat-icon icon-green">◌</span></div><strong id="stat-score">—</strong><small>score is not breach probability</small></article>
+          </div>
+          <div class="content-grid chart-grid">
+            <article class="panel panel-chart"><div class="panel-heading"><div><h2>Flow activity</h2><p>Volume and model alerts over time</p></div><span class="panel-period" id="chart-period">24H</span></div><div class="chart-wrap"><canvas id="activity-chart" aria-label="Hourly flow and alert counts" role="img"></canvas><div id="chart-empty" class="chart-empty" hidden>No scored flows in this period yet.</div></div><div class="chart-legend"><span><i class="legend-blue"></i>Scored flows</span><span><i class="legend-red"></i>Alerts</span></div></article>
+            <article class="panel panel-breakdown"><div class="panel-heading"><div><h2>Alert classes</h2><p>Known class predictions on flagged flows</p></div><span class="panel-icon">◈</span></div><div id="class-breakdown" class="class-breakdown"><p class="empty-text">No flow alerts in this period.</p></div></article>
+          </div>
+          <div class="content-grid lower-grid">
+            <article class="panel"><div class="panel-heading"><div><h2>Recent flow alerts</h2><p>Latest model signals requiring review</p></div><a href="#events" class="text-link">View all <span aria-hidden="true">→</span></a></div><div id="recent-alerts" class="recent-list"><p class="empty-text">No alerts recorded yet.</p></div></article>
+            <article class="panel"><div class="panel-heading"><div><h2>Connected providers</h2><p>Native findings forwarded to this service</p></div><a href="#integrations" class="text-link">Configure <span aria-hidden="true">→</span></a></div><div id="provider-summary" class="provider-summary"><p class="empty-text">No provider findings received.</p></div><div class="panel-note"><span class="note-icon">i</span><span>Provider findings are shown separately from ML flow predictions.</span></div></article>
+          </div>
+          <p class="data-note"><span>ⓘ</span> Model alerts are signals for investigation. They do not confirm a breach or guarantee attack detection.</p>
+        </section>
+
+        <section class="page-view" data-view="events">
+          <div class="page-heading"><div><p class="eyebrow">LIVE TELEMETRY</p><h1>Flow events</h1><p class="muted">Inspect model scores, predicted classes, and the signals behind each decision.</p></div><button class="button button-primary" data-action="refresh">↻ Refresh events</button></div>
+          <div class="panel table-panel"><div class="table-toolbar"><div class="segmented" role="group" aria-label="Filter flow events"><button class="segment active" data-event-filter="all">All flows</button><button class="segment" data-event-filter="true">Alerts only</button><button class="segment" data-event-filter="false">Benign scores</button></div><div class="table-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input id="event-search" type="search" placeholder="Search class, source, reason" aria-label="Search flow events"></label><select id="event-limit" aria-label="Number of events"><option value="50">50 rows</option><option value="100" selected>100 rows</option><option value="250">250 rows</option></select></div></div><div class="table-scroll"><table><thead><tr><th>EVENT</th><th>CLASS</th><th>SIGNAL</th><th>SCORE</th><th>SOURCE</th><th>TIME</th><th>STATUS</th></tr></thead><tbody id="event-rows"><tr><td colspan="7" class="empty-cell">Connect to load flow events.</td></tr></tbody></table></div><div class="table-footer"><span id="event-count">0 events</span><span>Newest first · updates automatically</span></div></div>
+        </section>
+
+        <section class="page-view" data-view="findings">
+          <div class="page-heading"><div><p class="eyebrow">NATIVE CLOUD SECURITY</p><h1>Cloud findings</h1><p class="muted">Provider-generated security findings, kept distinct from ML flow predictions.</p></div><button class="button button-primary" data-action="refresh">↻ Refresh findings</button></div>
+          <div class="findings-banner"><span class="banner-icon">◇</span><div><strong>Bring your cloud security alerts together.</strong><p>Forward AWS, Azure, or Google Cloud finding envelopes through a trusted relay. This dashboard stores normalized finding details, not the raw provider payload.</p></div><a href="#integrations" class="text-link">Integration guide →</a></div>
+          <div class="panel table-panel"><div class="table-toolbar"><h2>Provider findings</h2><select id="provider-filter" aria-label="Filter by provider"><option value="all">All providers</option><option value="aws">AWS</option><option value="azure">Azure</option><option value="gcp">Google Cloud</option></select></div><div class="table-scroll"><table><thead><tr><th>SEVERITY</th><th>FINDING</th><th>PROVIDER</th><th>RESOURCE</th><th>CATEGORY</th><th>RECEIVED</th></tr></thead><tbody id="finding-rows"><tr><td colspan="6" class="empty-cell">No provider findings received yet.</td></tr></tbody></table></div><div class="table-footer"><span id="finding-count">0 findings</span><span>Native provider signals · not ML classifications</span></div></div>
+        </section>
+
+        <section class="page-view" data-view="models">
+          <div class="page-heading"><div><p class="eyebrow">DETECTION ENGINE</p><h1>Models & analysis</h1><p class="muted">Understand what the current model is trained to detect—and where it has gaps.</p></div><span class="live-pill"><span class="status-dot status-ok"></span>Model loaded</span></div>
+          <div id="model-cards" class="model-grid"></div>
+          <article id="model-benchmark" class="panel benchmark-panel"></article>
+          <div class="content-grid model-lower"><article class="panel"><div class="panel-heading"><div><h2>Held-out class recall</h2><p>Benchmark recall when a class is excluded from training</p></div></div><div id="heldout-chart" class="class-breakdown"><p class="empty-text">Evaluation metadata is unavailable.</p></div></article><article class="panel risk-panel"><div class="panel-heading"><div><h2>Read this carefully</h2><p>Benchmark results are not a production guarantee</p></div><span class="stat-icon icon-amber">!</span></div><ul class="caveat-list"><li>The evaluation uses public UNSW-NB15 flow data, not your cloud logs.</li><li>False positives and recall change with traffic mix and feature quality.</li><li>Some unseen attack families had low recall in this benchmark.</li><li>A model alert is an investigation lead, not proof of compromise.</li></ul><p class="small-muted">Full metrics are included in the local <code>results-live/report.md</code> report.</p></article></div>
+        </section>
+
+        <section class="page-view" data-view="integrations">
+          <div class="page-heading"><div><p class="eyebrow">DATA CONNECTIONS</p><h1>Integrations</h1><p class="muted">Connect an approved telemetry relay to the live scoring API.</p></div><span class="integration-state"><span id="integration-dot" class="status-dot"></span><span id="integration-state-text">Waiting for source events</span></span></div>
+          <div class="integration-grid"><article class="integration-card"><div class="integration-logo logo-ml">ML</div><div class="integration-card-head"><div><h2>Flow scoring API</h2><p>Send extracted flow features to the loaded model.</p></div><span class="status-chip chip-local">LOCAL API</span></div><div class="endpoint-line"><code>POST /v1/flows</code><button class="copy-button" data-copy="/v1/flows" aria-label="Copy endpoint">Copy</button></div><div class="endpoint-line"><code>GET /v1/schema</code><button class="copy-button" data-copy="/v1/schema" aria-label="Copy schema endpoint">Copy</button></div><p class="small-muted">Every event must contain all <strong id="schema-count">—</strong> numeric model features. Do not fill missing measurements with zero.</p></article>
+            <article class="integration-card"><div class="integration-logo logo-cloud">◇</div><div class="integration-card-head"><div><h2>Cloud-native findings</h2><p>Receive native provider alerts through your trusted relay.</p></div><span class="status-chip chip-optional">RELAY REQUIRED</span></div><div class="provider-badges"><span>AWS</span><span>AZURE</span><span>GOOGLE CLOUD</span></div><div class="endpoint-line"><code>POST /v1/provider-findings</code><button class="copy-button" data-copy="/v1/provider-findings" aria-label="Copy provider endpoint">Copy</button></div><p class="small-muted">Supports normalized finding envelopes. These are displayed separately; they are not passed into the UNSW flow model.</p></article></div>
+          <article class="panel integration-guide"><div class="panel-heading"><div><h2>Safe connection pattern</h2><p>Keep provider credentials and the service token on a trusted server.</p></div></div><ol class="steps"><li><span>1</span><div><strong>Set up a provider-side relay</strong><p>Use your cloud's event delivery service or SIEM to send selected flow features or native findings to your backend.</p></div></li><li><span>2</span><div><strong>Normalize and validate</strong><p>For ML scoring, derive the exact schema from <code>/v1/schema</code>. If a source lacks a measurement, do not invent it; choose a model trained for that source.</p></div></li><li><span>3</span><div><strong>Forward over TLS</strong><p>Keep the bearer token out of browser code. Bind the API remotely only with TLS, and rotate credentials after exposure.</p></div></li></ol><div class="callout-warning"><strong>Not connected to a cloud account</strong><p>No AWS, Azure, or Google credentials are configured in this project. Provider-side delivery rules and least-privilege permissions still need to be set up in your account.</p></div></article>
+        </section>
+
+        <section class="page-view" data-view="settings">
+          <div class="page-heading"><div><p class="eyebrow">PREFERENCES</p><h1>Settings</h1><p class="muted">Adjust this dashboard for your workflow.</p></div></div>
+          <article class="panel settings-panel"><div class="setting-row"><div><h2>Appearance</h2><p>Choose a light, dark, or system-matched theme.</p></div><select id="theme-select"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></div><div class="setting-row"><div><h2>Refresh interval</h2><p>How often live analytics and event lists update.</p></div><select id="poll-select"><option value="5">Every 5 seconds</option><option value="10">Every 10 seconds</option><option value="30">Every 30 seconds</option></select></div><div class="setting-row"><div><h2>Session security</h2><p>The API token is held in memory and cleared on disconnect.</p></div><button id="settings-disconnect" class="button button-outline">Disconnect</button></div></article>
+          <div class="settings-footnote">Dashboard preferences are stored locally in this browser. The bearer token is not saved to local storage.</div>
+        </section>
+
+        <section class="page-view" data-view="about">
+          <div class="page-heading"><div><p class="eyebrow">ABOUT THE PROJECT</p><h1>Detection with clear limits.</h1><p class="muted">CloudIDS is an experimental intrusion-detection project built for evaluation and analyst review.</p></div></div>
+          <div class="content-grid about-grid"><article class="panel"><h2>What it does</h2><p>Random Forest and XGBoost classify patterns learned from labelled network flows. A benign-trained autoencoder and K-means model flag flows that differ from learned benign patterns. A hybrid combines those signals.</p></article><article class="panel"><h2>What it does not do</h2><p>It does not independently collect packets, prove a breach, block traffic, or connect to a cloud provider. Native cloud findings are ingested and displayed separately from ML predictions.</p></article><article class="panel"><h2>Dataset context</h2><p>The current benchmark is UNSW-NB15 with a class cap and an attack-heavy held-out test mix. Your production results can differ substantially. Validate on representative telemetry before relying on it.</p></article><article class="panel"><h2>Recommended use</h2><p>Use alerts as investigation leads, measure false alarms with your own benign traffic, protect the event database, and connect providers through a least-privilege relay.</p></article></div>
+        </section>
+      </main>
+      <footer class="app-footer"><span>CloudIDS <span id="footer-model">—</span></span><span>Local monitoring console · <span id="last-updated">Not synced</span></span></footer>
+    </div>
+  </div>
+  <dialog id="event-dialog" class="event-dialog"><form method="dialog"><button class="dialog-close" aria-label="Close event details">×</button></form><div id="event-detail"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
